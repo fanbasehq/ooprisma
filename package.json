@@ -1,0 +1,30 @@
+{
+  "name": "ooprisma",
+  "version": "1.0.0",
+  "main": "dist/ooprisma.js",
+  "repository": "git@github.com:fanbasehq/ooprisma.git",
+  "author": "Jiří Špác <capajj@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@prisma/client": "^3.6.0",
+    "@types/jest": "^27.0.3",
+    "class-transformer": "^0.5.1",
+    "husky": "^7.0.4",
+    "jest": "^27.4.3",
+    "prettier": "^2.5.1",
+    "pretty-quick": "^3.1.2",
+    "ts-jest": "^27.0.7",
+    "typescript": "^4.5.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  },
+  "dependencies": {
+    "@types/node": "^16.11.11",
+    "graphql": "^16.0.1",
+    "reflect-metadata": "^0.1.13",
+    "type-graphql": "^1.1.1"
+  }
+}

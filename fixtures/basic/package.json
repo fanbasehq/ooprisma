@@ -1,0 +1,19 @@
+{
+  "name": "my-prisma-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "prisma": "^3.6.0",
+    "prisma-typegraphql-types-generator": "^1.4.18"
+  },
+  "dependencies": {
+    "@prisma/client": "^3.6.0"
+  }
+}

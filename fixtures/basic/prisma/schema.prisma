@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./basic.db"
+}
+
+generator PrismaTypeGraphQLTypesGenerator {
+  provider                       = "node /home/capaj/oss/graphql-repos/prisma-tgql-types-gen/packages/generator/dist/generator.js"
+  modelsOutput                   = "./models/generated"
+  enumsOutput                    = "./models/types"
+  useYarn                        = true
+  removeTypeInFieldDecorator     = true
+  splitScalarAndObjectTypeFields = true
+  exportedNameSuffix             = "GQL"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  email     String   @unique
+  name      String?
+  role      String   @default("USER")
+  posts     Post[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean  @default(false)
+  title     String
+  author    User?    @relation(fields: [authorId], references: [id])
+  authorId  Int?
+}
