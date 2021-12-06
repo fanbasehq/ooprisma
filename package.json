@@ -25,6 +25,8 @@
     "@types/node": "^16.11.11",
     "graphql": "^16.0.1",
     "reflect-metadata": "^0.1.13",
-    "type-graphql": "^1.1.1"
+    "type-graphql": "^1.1.1",
+    "sql-formatter": "^4.0.2",
+    "sql-highlight": "^4.0.1"
   }
 }

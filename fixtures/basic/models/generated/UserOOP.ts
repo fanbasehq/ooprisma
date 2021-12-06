@@ -1,10 +1,15 @@
+import { prisma } from '@prisma/client'
 import { Field, ID, ObjectType } from 'type-graphql'
-import { PostGQL } from './PostOOP'
+import { prismaClient } from '../../prisma/prismaClient'
 
 import { PostGQL } from './Post'
 
+class Base {
+  static prismaModel: typeof prismaClient.user
+}
+
 @ObjectType()
-export class UserGQLScalars {
+export class UserGQLScalars extends Base {
   @Field(() => ID)
   id: number
 
@@ -26,4 +31,8 @@ export class UserGQL extends UserGQLScalars {
   posts: PostGQL[]
 
   // skip overwrite 👇
+
+  login() {
+    console.log('user method for log in')
+  }
 }

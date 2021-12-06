@@ -14,6 +14,8 @@
     "prisma-typegraphql-types-generator": "^1.4.18"
   },
   "dependencies": {
-    "@prisma/client": "^3.6.0"
+    "@prisma/client": "^3.6.0",
+    "sql-formatter": "^4.0.2",
+    "sql-highlight": "^4.0.1"
   }
 }
