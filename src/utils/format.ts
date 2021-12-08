@@ -16,7 +16,8 @@ export const format = (content: string): Promise<string> => {
         res(formatted)
       } catch (error) {
         console.error(error)
-        rej(error)
+
+        res(content)
       }
     })
   )

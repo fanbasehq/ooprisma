@@ -187,7 +187,7 @@ export function generateModelClass(
       const Decorator = DECORATOR_TEMPLATE(decoratorType(), decoratorObject())
       const Field = FIELD_TEMPLATE(Decorator, '\n  ' + fieldName, fieldType)
 
-      return Field
+      return { field: Field, kind: field.kind }
     })
 
     const hidden = formattedFields.filter((e) => {
@@ -323,8 +323,7 @@ export function generateModelClass(
 
     const scalarsClass = MODEL_TEMPLATE(
       `${modelName}Scalars`,
-      scalarFields.join('\n'),
-      '\n}'
+      scalarFields.join('\n')
     )
 
     const objectsClass = MODEL_TEMPLATE(
