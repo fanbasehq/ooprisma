@@ -11,13 +11,12 @@ datasource db {
 }
 
 generator PrismaTypeGraphQLTypesGenerator {
-  provider                       = "node /home/capaj/oss/graphql-repos/prisma-tgql-types-gen/packages/generator/dist/generator.js"
-  modelsOutput                   = "./models/generated"
-  enumsOutput                    = "./models/types"
-  useYarn                        = true
-  removeTypeInFieldDecorator     = true
-  splitScalarAndObjectTypeFields = true
-  exportedNameSuffix             = "GQL"
+  provider                   = "node ../../dist/generator.js"
+  modelsOutput               = "./models/generated"
+  enumsOutput                = "./models/types"
+  useYarn                    = true
+  removeTypeInFieldDecorator = true
+  exportedNameSuffix         = "GQL"
 }
 
 model User {

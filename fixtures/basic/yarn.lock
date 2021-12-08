@@ -118,7 +118,7 @@
     temp-dir "^2.0.0"
     tempy "^1.0.0"
 
-"@prisma/generator-helper@3.6.0", "@prisma/generator-helper@^3.4.2":
+"@prisma/generator-helper@3.6.0", "@prisma/generator-helper@^3.4.2", "@prisma/generator-helper@^3.6.0":
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/@prisma/generator-helper/-/generator-helper-3.6.0.tgz#38ade00bd9dc25a252bdb0ea0dc83d49533a2585"
   integrity sha512-/mwQvnTbuiZjVmLtCBuOK+Tz2+HLYjqOCCvsEH0LMxHQBtzVSG4/LhVHMYxs/4du8TdgpnguMh4wtRWJ9Ow/DQ==

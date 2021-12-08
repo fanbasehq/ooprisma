@@ -5,41 +5,50 @@ import { UserGQL } from './UserOOP'
 import { makeOOPrisma } from '../../../../src/orm/OOPrismaBase'
 import { Post, Prisma } from '@prisma/client'
 import { plainToInstance } from 'class-transformer'
-import { prismaClient } from '../../prisma/prismaClient'
-type GlobalReject = any
+import { prismaClient as prismaClient } from '../../prisma/prismaClient'
 
-const mapQueryResultToInstances = <T extends Prisma.PostInclude | null>(
-  res: Post & Partial<typeof PostPrismaBase['baseRelations']>,
+function mapQueryResultToInstances<T extends Prisma.PostInclude | null>(
+  raw: Post & Partial<typeof PostPrismaBase['baseRelations']>,
   include?: T
   // TODO figure out a type which will infer nullability of relations from the include payload, PostGQL & NonNullable<Pick<Relations, keyof Prisma.PostInclude>>
-): PostGQL => {
+): PostGQL {
   if (!include) {
-    return plainToInstance(PostGQL, res)
+    return plainToInstance(PostGQL, raw)
   }
-  for (const key of Object.keys(res)) {
+  for (const key of Object.keys(raw)) {
     // @ts-expect-error
-    if (res[key]) {
+    if (include[key] && raw[key]) {
       // @ts-expect-error
       if (typeof include[key] === 'object') {
         // @ts-expect-error
-        res[key] = mapQueryResultToInstances(res[key], include[key])
+        raw[key] = mapQueryResultToInstances(raw[key], include[key])
       } else {
         // @ts-expect-error
-        res[key] = plainToInstance(PostPrismaBase.baseRelations[key], res[key])
+        if (this?.constructor.relations && this?.constructor.relations[key]) {
+          // @ts-expect-error
+          raw[key] = plainToInstance(this?.constructor.relations[key], raw[key])
+        } else {
+          // @ts-expect-error
+          raw[key] = plainToInstance(
+            // @ts-expect-error
+            PostPrismaBase.baseRelations[key],
+            // @ts-expect-error
+            raw[key]
+          )
+        }
       }
-
-      // TODO call mapQueryResultToInstances recursively for each relation
     }
   }
-  return plainToInstance(PostGQL, res)
+  return plainToInstance(PostGQL, raw)
 }
 
+const baseRelations = {
+  author: UserGQL
+}
 class PostPrismaBase {
-  static prismaModel: typeof prismaClient.post
+  static prismaModel = prismaClient.post
 
-  static baseRelations = {
-    author: UserGQL
-  }
+  static baseRelations = baseRelations
 
   static async findFirst(
     ...args: Parameters<typeof this.prismaModel.findFirst>
@@ -107,8 +116,6 @@ class PostPrismaBase {
 
 @ObjectType()
 export class PostGQLScalars extends PostPrismaBase {
-  static prismaModel = prismaClient.post
-
   @Field(() => ID)
   id: number
 
@@ -124,7 +131,7 @@ export class PostGQLScalars extends PostPrismaBase {
   @Field()
   title: string
 
-  @Field(() => Int, { nullable: true })
+  @Field(() => Int, { nullable: true }) d
   authorId?: number
 
   // inspired by objection
@@ -142,21 +149,50 @@ export class PostGQLScalars extends PostPrismaBase {
     await prismaClient.post.delete({ where: { id: this.id } })
   }
 
+  async fetchGraph(relations: Record<keyof typeof baseRelations, boolean>) {
+    // TODO
+    const withFetched = await prismaClient.post.findUnique({
+      where: { id: this.id },
+      include: relations
+    })
+    console.log('~ this11', this)
+
+    const mappedToInstances = mapQueryResultToInstances.apply(this, [
+      // @ts-expect-error
+      withFetched,
+      relations
+    ])
+
+    for (const relation of Object.keys(relations)) {
+      // @ts-expect-error
+      this[relation] = mappedToInstances[relation]
+    }
+    return mappedToInstances
+  }
+
   async myMethod() {
     console.log('myMethod')
   }
 }
 
+class CustomUserClass extends UserGQL {
+  superCustomMethod() {
+    console.log('superCustomMethod')
+  }
+}
+
 export class PostGQL extends PostGQLScalars {
   @Field(() => UserGQL, { nullable: true })
-  author?: UserGQL
-
+  author?: CustomUserClass
+  static relations = {
+    author: CustomUserClass
+  }
   // skip overwrite 👇
 }
 
 ;(async () => {
-  // await prismaClient.post.deleteMany()
   await prismaClient.user.deleteMany()
+  PostGQL.deleteMany()
   const post1 = await PostGQL.create({
     data: {
       title: 'Hello World',
@@ -179,11 +215,14 @@ export class PostGQL extends PostGQLScalars {
   const postUpdated = await post1.patchAndFetch({
     title: 'Hello World 2'
   })
+  const onlyPost = await PostGQL.findFirst()
+  await onlyPost?.fetchGraph({ author: true })
+  console.log('fetchGraph', onlyPost)
+  onlyPost?.author?.superCustomMethod()
+  // console.log(post1)
 
-  console.log(post1)
+  // // postUpdated.delete()
 
-  // postUpdated.delete()
-
-  const posts = await PostGQL.findMany({ include: { author: true } })
-  console.log(posts)
+  // const posts = await PostGQL.findMany({ include: { author: true } })
+  // console.log(posts)
 })()
