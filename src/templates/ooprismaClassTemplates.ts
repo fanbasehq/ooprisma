@@ -1,4 +1,4 @@
-const makeMapQueryResultToInstances = (modelName: string) => {
+export const makeMapQueryResultToInstances = (modelName: string) => {
   return `function mapQueryResultToInstances<T extends Prisma.${modelName}Include | null>(
 raw: ${modelName} & Partial<typeof ${modelName}PrismaBase['baseRelations']>,
 include?: T
@@ -35,10 +35,8 @@ include?: T
 }`
 }
 
-const makePrismaBase = (modelName: string, relations: string[]) => {
-  return `const baseRelations = {
-    author: UserGQL
-}
+export const makePrismaBase = (modelName: string, relationsMap = '{}') => {
+  return `const baseRelations = ${relationsMap}
 class ${modelName}PrismaBase {
     static prismaModel = prismaClient.${modelName.toLowerCase()}
 
@@ -109,7 +107,7 @@ class ${modelName}PrismaBase {
 }`
 }
 
-const makeInstanceMethods = (modelName: string) => {
+export const makeInstanceMethods = (modelName: string) => {
   const lowercaseModelName = modelName.toLowerCase()
   return `async $patchAndFetch(data: Prisma.PostUncheckedUpdateInput) {
     const res = await prismaClient.${lowercaseModelName}.update({

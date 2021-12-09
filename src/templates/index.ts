@@ -1,4 +1,7 @@
-export const INDEX_TEMPLATE = (CLASSES: string, IMPORTS?: string) => `${
-  IMPORTS ? IMPORTS : ''
-}
-${CLASSES}`
+export const INDEX_TEMPLATE = (
+  classes: string,
+  importStatements: string = '',
+  moduleLocals: string = ''
+) => `${importStatements}
+${moduleLocals}
+${classes}`

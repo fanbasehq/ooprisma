@@ -1,11 +1,11 @@
 export const MODEL_TEMPLATE = (
-  CLASSNAME: string,
-  FIELDS: string,
-  CUSTOMFIELDS: string = '  // skip overwrite 👇',
-  EXTENDS: string = ''
+  className: string,
+  fields: string,
+  customFields: string = '  // skip overwrite 👇',
+  extendsClause: string = ''
 ) => {
-  return `export class ${CLASSNAME}${EXTENDS} {
-${FIELDS}
-${CUSTOMFIELDS}
+  return `export class ${className}${extendsClause} {
+${fields}
+${customFields}
 }`
 }

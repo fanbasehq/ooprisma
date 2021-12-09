@@ -24,8 +24,9 @@ model User {
   createdAt DateTime @default(now())
   email     String   @unique
   name      String?
-  role      String   @default("USER")
-  posts     Post[]
+
+  role  String @default("USER")
+  posts Post[]
 }
 
 model Post {

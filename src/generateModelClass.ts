@@ -19,6 +19,10 @@ import { restoreImportsChanges } from './utils/restoreImportsSection'
 import { restoreDecoratorObjects } from './utils/restoreDecoratorObjects'
 import { format } from './utils/format'
 import { installPackage } from './utils/installPackage'
+import {
+  makeMapQueryResultToInstances,
+  makePrismaBase
+} from './templates/ooprismaClassTemplates'
 
 interface IGenerateModelClassOptions {
   modelsWriteLocation: string
@@ -328,6 +332,8 @@ export function generateModelClass(
       }
     }
 
+    const prismaBaseClass = makePrismaBase(modelName)
+
     const scalarsClass = MODEL_TEMPLATE(
       `${modelName}Scalars`,
       scalarFields.join('\n')
@@ -341,8 +347,9 @@ export function generateModelClass(
     )
 
     const generatedModel = INDEX_TEMPLATE(
-      [scalarsClass, objectsClass].join('\n\n'),
-      mergedImports.join('\n') + otherCodeThatChanged
+      [prismaBaseClass, scalarsClass, objectsClass].join('\n\n'),
+      mergedImports.join('\n') + otherCodeThatChanged,
+      makeMapQueryResultToInstances(modelName)
     )
 
     return {
