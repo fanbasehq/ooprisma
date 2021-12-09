@@ -215,6 +215,7 @@ export function generateModelClass(
         else return true
       })
       .map((e) => e.field)
+    console.log('~ objectsFields', objectsFields)
 
     const dependsOn = modulesThatIsUsed(
       options.dmmf.datamodel.models,
@@ -278,6 +279,19 @@ export function generateModelClass(
       imports.push(IMPORT_TEMPLATE(`GraphQLScalars`, `graphql-scalars`))
     }
 
+    imports.push(
+      IMPORT_TEMPLATE(
+        `{ Prisma, PrismaClient, ${model.name} }`,
+        `@prisma/client`
+      )
+    )
+    imports.push(IMPORT_TEMPLATE(`{ plainToInstance }`, `class-transformer`))
+
+    const prismaClientPath = path
+      .relative(writeLocation, options.generator.config.prismaClientPath)
+      .replace('../', './') // for some strange reason this is needed
+    imports.push(IMPORT_TEMPLATE(`{ prismaClient }`, prismaClientPath))
+
     const classChanges = restoreClassChanges(writeLocation)
     const importsChanges = restoreImportsChanges(writeLocation)
 
@@ -326,17 +340,22 @@ export function generateModelClass(
       e.includes('@ObjectType')
     )
 
-    if (codeSplitted[ObjectTypeIndex - 1].length !== 0) {
+    if (
+      codeSplitted[ObjectTypeIndex - 1] &&
+      codeSplitted[ObjectTypeIndex - 1].length !== 0
+    ) {
       if (otherCodeThatChanged.length) {
         mergedImports.push('')
       }
     }
 
-    const prismaBaseClass = makePrismaBase(modelName)
+    const prismaBaseClass = makePrismaBase(modelName, model.name)
 
     const scalarsClass = MODEL_TEMPLATE(
       `${modelName}Scalars`,
-      scalarFields.join('\n')
+      scalarFields.join('\n'),
+      '',
+      ` extends ${modelName}PrismaBase`
     )
 
     const objectsClass = MODEL_TEMPLATE(
@@ -348,8 +367,8 @@ export function generateModelClass(
 
     const generatedModel = INDEX_TEMPLATE(
       [prismaBaseClass, scalarsClass, objectsClass].join('\n\n'),
-      mergedImports.join('\n') + otherCodeThatChanged,
-      makeMapQueryResultToInstances(modelName)
+      mergedImports.join('\n') + '',
+      makeMapQueryResultToInstances(modelName, model.name)
     )
 
     return {

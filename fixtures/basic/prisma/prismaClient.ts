@@ -15,7 +15,7 @@ export const prismaClient = new PrismaClient({
     'warn' as Prisma.LogLevel
   ]
 })
-console.log('~ prismaClient', prismaClient._engine.config.activeProvider)
+console.log('~ prismaClient', prismaClient.engine.config.activeProvider)
 
 // @ts-expect-error Prisma has bad typings
 prismaClient.$on('query', getLoggerFn(prismaClient))

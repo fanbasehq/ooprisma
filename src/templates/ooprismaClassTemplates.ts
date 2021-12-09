@@ -1,8 +1,11 @@
-export const makeMapQueryResultToInstances = (modelName: string) => {
-  return `function mapQueryResultToInstances<T extends Prisma.${modelName}Include | null>(
-raw: ${modelName} & Partial<typeof ${modelName}PrismaBase['baseRelations']>,
+export const makeMapQueryResultToInstances = (
+  modelName: string,
+  rawPrismaModelName: string
+) => {
+  return `function mapQueryResultToInstances<T extends Prisma.${rawPrismaModelName}Include | null>(
+raw: ${rawPrismaModelName} & Partial<typeof ${modelName}PrismaBase['baseRelations']>,
 include?: T
-): PostGQL {
+): ${modelName} {
     if (!include) {
         return plainToInstance(PostGQL, raw)
     }
@@ -31,14 +34,18 @@ include?: T
     }
   }
 
-    return plainToInstance(${modelName}GQL, raw)
+    return plainToInstance(${modelName}, raw)
 }`
 }
 
-export const makePrismaBase = (modelName: string, relationsMap = '{}') => {
+export const makePrismaBase = (
+  modelName: string,
+  rawPrismaModelName: string,
+  relationsMap = '{}'
+) => {
   return `const baseRelations = ${relationsMap}
 class ${modelName}PrismaBase {
-    static prismaModel = prismaClient.${modelName.toLowerCase()}
+    static prismaModel = prismaClient.${rawPrismaModelName.toLowerCase()}
 
     static baseRelations = baseRelations
 

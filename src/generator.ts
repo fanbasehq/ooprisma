@@ -70,7 +70,7 @@ generatorHandler({
       fs.writeFileSync(writeLocation, await format(generatedEnum))
     })
 
-    logger.info(`${GENERATOR_NAME}:Generated Successfuly!`)
+    logger.info(`${GENERATOR_NAME}:Generated Successfully!`)
   }
 })
 

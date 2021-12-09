@@ -16,6 +16,7 @@ generator PrismaTypeGraphQLTypesGenerator {
   enumsOutput                = "./models/types"
   useYarn                    = true
   removeTypeInFieldDecorator = true
+  prismaClientPath           = "prisma/prismaClient"
   exportedNameSuffix         = "GQL"
 }
 
