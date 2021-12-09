@@ -1,3 +1,5 @@
+import { DMMF } from '@prisma/generator-helper'
+
 export const prismaTypes = [
   'String',
   'Int',
@@ -7,11 +9,15 @@ export const prismaTypes = [
   'BigInt',
   'Decimal',
   'Json',
-  'Bytes',
+  'Bytes'
 ]
 
-export const convertType = (type: string, prefix?: string, suffix?: string) => {
-  if (prismaTypes.includes(type)) {
+export const convertType = (
+  type: DMMF.Field['type'],
+  prefix?: string,
+  suffix?: string
+) => {
+  if (prismaTypes.includes(type as string)) {
     switch (type) {
       case 'String':
         return 'string'

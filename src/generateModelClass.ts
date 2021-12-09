@@ -1,5 +1,4 @@
 import { DMMF, GeneratorOptions } from '@prisma/generator-helper'
-import fs from 'fs'
 import path from 'path'
 import { INDEX_TEMPLATE } from './templates'
 import { DECORATOR_TEMPLATE } from './templates/decorator'
@@ -19,6 +18,7 @@ import { restoreClassChanges } from './utils/restoreClassChanges'
 import { restoreImportsChanges } from './utils/restoreImportsSection'
 import { restoreDecoratorObjects } from './utils/restoreDecoratorObjects'
 import { format } from './utils/format'
+import { installPackage } from './utils/installPackage'
 
 interface IGenerateModelClassOptions {
   modelsWriteLocation: string
@@ -45,10 +45,12 @@ export function generateModelClass(
 
     const allFields: { field: string; type: string }[] = []
 
-    model.fields.map((field) => {
+    model.fields.map((field: DMMF.Field) => {
       const optionalCondition = !field.isRequired
       const fieldName = `${field.name}${optionalCondition ? '?' : ''}`
-      const fieldType = `${convertType(field.type)!}${field.isList ? '[]' : ''}`
+      const fieldType = `${convertType(field.type as string)!}${
+        field.isList ? '[]' : ''
+      }`
       allFields.push({ field: fieldName, type: fieldType })
     })
 
@@ -62,7 +64,7 @@ export function generateModelClass(
 
     let dynamicImports = ''
 
-    const formattedFields = model.fields.map((field, index) => {
+    const formattedFields = model.fields.map((field: DMMF.Field, index) => {
       const { isForceNullable, isSkip } = hideOrPrivate(
         extractedData,
         field.name,
@@ -79,7 +81,7 @@ export function generateModelClass(
 
       const decoratorType = () => {
         // Special Cases
-        const type = (type: string) =>
+        const type = (type: DMMF.Field['type']) =>
           `(${
             options.generator.config.removeTypeInFieldDecorator ? '' : '_type'
           }) => ${type}`
@@ -123,7 +125,8 @@ export function generateModelClass(
         }
 
         if (
-          typeGraphQLType.length === 0 ||
+          (typeof typeGraphQLType === 'string' &&
+            typeGraphQLType.length === 0) ||
           (field.kind === 'scalar' &&
             !field.isId &&
             field.type !== 'Json' &&
@@ -230,8 +233,14 @@ export function generateModelClass(
         .map(({ kind, name }) => {
           if (!hidden.find((e: any) => e.type === name)) {
             if (kind === 'object') {
-              const modelName = `${exportedNamePrefix}${name}${exportedNameSuffix}`
-              return IMPORT_TEMPLATE(`{ ${modelName} }`, `./${name}`)
+              const importModelName = `${exportedNamePrefix}${name}${exportedNameSuffix}`
+
+              // If the Model referenced itself -> return
+              if (importModelName === modelName) {
+                return
+              }
+
+              return IMPORT_TEMPLATE(`{ ${importModelName} }`, `./${name}`)
             } else if (kind === 'enum') {
               const relativePathToEnums = replaceAll(
                 path.relative(
@@ -319,7 +328,6 @@ export function generateModelClass(
     }
 
     const modelName = `${exportedNamePrefix}${model.name}${exportedNameSuffix}`
-    let generatedModel: string
 
     const scalarsClass = MODEL_TEMPLATE(
       `${modelName}Scalars`,
@@ -333,7 +341,7 @@ export function generateModelClass(
       ` extends ${modelName}Scalars`
     )
 
-    generatedModel = INDEX_TEMPLATE(
+    const generatedModel = INDEX_TEMPLATE(
       [scalarsClass, objectsClass].join('\n\n'),
       mergedImports.join('\n') + otherCodeThatChanged
     )
