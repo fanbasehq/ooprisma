@@ -11,5 +11,7 @@ describe('generator', () => {
       'Generated Prisma Typegraphql Types Generator'
     )
     expect(stderr).toBe('')
+    // @ts-expect-error
+    expect('./fixtures/basic/models/generated').toMatchFilesystemSnapshot()
   })
 })

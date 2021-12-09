@@ -1,3 +1,3 @@
-import { toMatchFile } from 'jest-file-snapshot';
-
-expect.extend({ toMatchFile });
+import { toMatchFilesystemSnapshot } from 'jest-fs-snapshot'
+// @ts-expect-error
+expect.extend({ toMatchFilesystemSnapshot })
