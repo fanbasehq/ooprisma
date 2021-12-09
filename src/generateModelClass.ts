@@ -226,6 +226,7 @@ export function generateModelClass(
         `type-graphql`
       )
     )
+    const modelName = `${exportedNamePrefix}${model.name}${exportedNameSuffix}`
 
     imports = [
       ...imports,
@@ -326,8 +327,6 @@ export function generateModelClass(
         mergedImports.push('')
       }
     }
-
-    const modelName = `${exportedNamePrefix}${model.name}${exportedNameSuffix}`
 
     const scalarsClass = MODEL_TEMPLATE(
       `${modelName}Scalars`,

@@ -1,11 +1,11 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client'
 
 export const makeOOPrisma = function <T>(prisma: PrismaClient) {
   class OOPrismaBase {
-    modelName: string;
-    static get delegate() {
-      return prisma[this.modelName] as any as T;
-    }
+    modelName: string
+    // static get delegate() {
+    //   return prisma[this.modelName] as any as T;
+    // }
     // async aggregate(...args) {
     //   return prisma[this.modelName].aggregate(...args);
     // }
@@ -15,11 +15,11 @@ export const makeOOPrisma = function <T>(prisma: PrismaClient) {
     // async create() {
     //   return prisma[this.modelName].create();
     // }
-    static async findFirst(
-      ...args: Parameters<typeof this.delegate.findFirst>
-    ) {
-      return this.delegate.findFirst();
-    }
+    // static async findFirst(
+    //   ...args: Parameters<typeof this.delegate.findFirst>
+    // ) {
+    //   return this.delegate.findFirst();
+    // }
     // async findMany() {
     //   return prisma[this.modelName].findMany();
     // }
@@ -46,5 +46,5 @@ export const makeOOPrisma = function <T>(prisma: PrismaClient) {
     // }
   }
 
-  return OOPrismaBase;
-};
+  return OOPrismaBase
+}

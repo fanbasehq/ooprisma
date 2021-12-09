@@ -9,7 +9,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "prisma": "^3.6.0",
     "prisma-typegraphql-types-generator": "^1.4.18"
