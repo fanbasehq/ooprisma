@@ -142,6 +142,44 @@ class PostPrismaBase {
 
     return this.mapQueryResultToInstances(res, args[0]?.include)
   }
+
+  async $patchAndFetch<T extends PostPrismaBase & { id: any }>(
+    this: T,
+    data: Prisma.PostUncheckedUpdateInput
+  ) {
+    const res = await prismaClient.post.update({
+      where: { id: this.id },
+      data
+    })
+    Object.assign(this, res)
+
+    return this
+  }
+
+  async delete<T extends PostPrismaBase & { id: any }>(this: T) {
+    return prismaClient.post.delete({ where: { id: this.id } })
+  }
+
+  async fetchGraph<T extends PostPrismaBase & { id: any }>(
+    this: T,
+    relations: Record<keyof Prisma.PostInclude, boolean>
+  ) {
+    const withFetched = await prismaClient.post.findUnique({
+      where: { id: this.id },
+      include: relations
+    })
+    const mappedToInstances = PostPrismaBase.mapQueryResultToInstances.apply(
+      // @ts-expect-error
+      this.constructor,
+      [withFetched, relations]
+    )
+
+    for (const relation of Object.keys(relations)) {
+      // @ts-expect-error
+      this[relation] = mappedToInstances[relation]
+    }
+    return mappedToInstances
+  }
 }
 
 export class PostGQLScalars extends PostPrismaBase {

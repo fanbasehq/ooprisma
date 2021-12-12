@@ -4,7 +4,7 @@ import { INDEX_TEMPLATE } from './templates'
 import { DECORATOR_TEMPLATE } from './templates/decorator'
 import { FIELD_TEMPLATE } from './templates/field'
 import { IMPORT_TEMPLATE } from './templates/import'
-import { MODEL_TEMPLATE } from './templates/model'
+import { MODEL_TEMPLATE } from './templates/objectTypeModelTemplate'
 import { convertType } from './utils/convertType'
 import {
   hideOrPrivate,
@@ -209,12 +209,11 @@ export function generateModelClass(
       })
       .map((e) => e.field)
 
-    const objectsFields = formattedFields
-      .filter((e) => {
-        if (!e?.field || e.kind === 'scalar') return false
-        else return true
-      })
-      .map((e) => e.field)
+    const nonScalarFields = formattedFields.filter((e) => {
+      if (!e?.field || e.kind === 'scalar') return false
+      else return true
+    })
+    const objectsFields = nonScalarFields.map((e) => e.field)
     console.log('~ objectsFields', objectsFields)
 
     const dependsOn = modulesThatIsUsed(
@@ -300,10 +299,6 @@ export function generateModelClass(
     const classChanges = restoreClassChanges(writeLocation)
     const importsChanges = restoreImportsChanges(writeLocation)
 
-    if (!importsChanges) {
-      imports.push(`\n@ObjectType()`)
-    }
-
     const actualImportsThatChanged = importsChanges
       ? (
           await format(
@@ -354,7 +349,17 @@ export function generateModelClass(
       }
     }
 
-    const prismaBaseClass = makePrismaBase(modelName, model.name)
+    const baseRelationsMap = `{${objectsFields
+      .map((field) => {
+        return field?.split('\n')[1].replace('?', '').replace('[]', '')
+      })
+      .join(',')}}\n`
+
+    const prismaBaseClass = makePrismaBase(
+      modelName,
+      model.name,
+      baseRelationsMap
+    )
 
     const scalarsClass = MODEL_TEMPLATE(
       `${modelName}Scalars`,
@@ -370,7 +375,7 @@ export function generateModelClass(
       ` extends ${modelName}Scalars`
     )
 
-    const generatedModel = INDEX_TEMPLATE(
+    let generatedModel = INDEX_TEMPLATE(
       [prismaBaseClass, scalarsClass, objectsClass].join('\n\n'),
       mergedImports.join('\n') + '',
       makeUtilTypes(model.name.toLowerCase())

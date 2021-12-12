@@ -4,7 +4,8 @@ export const MODEL_TEMPLATE = (
   customFields: string = '  // skip overwrite 👇',
   extendsClause: string = ''
 ) => {
-  return `export class ${className}${extendsClause} {
+  return `@ObjectType()
+  export class ${className}${extendsClause} {
 ${fields}
 ${customFields}
 }`

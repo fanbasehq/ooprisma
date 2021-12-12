@@ -40,9 +40,8 @@ export const makePrismaBase = (
     }
 
     for (const keyRaw of Object.keys(raw)) {
-      const key = keyRaw as keyof Prisma.PostInclude
+      const key = keyRaw as keyof Prisma.${prismaModelName}Include
       if (include[key] && raw[key]) {
-        console.log('~ this', this.relations, key)
 
         if (typeof include[key] === 'object') {
           // @ts-expect-error
@@ -50,10 +49,10 @@ export const makePrismaBase = (
         } else {
           if (this?.relations && this?.relations[key]) {
             raw[key] = plainToInstance(this?.relations[key], raw[key])
-          } else {
+          } else if (this?.baseRelations && this?.baseRelations[key]) {
             raw[key] = plainToInstance(
-              PostPrismaBase.baseRelations[key],
-
+              // @ts-expect-error
+              ${modelName}PrismaBase.baseRelations[key],
               raw[key]
             )
           }
@@ -153,36 +152,41 @@ export const makePrismaBase = (
 
 export const makeInstanceMethods = (modelName: string) => {
   const lowercaseModelName = modelName.toLowerCase()
-  return `async $patchAndFetch(data: Prisma.PostUncheckedUpdateInput) {
+  return `  async $patchAndFetch<T extends ${modelName}PrismaBase & { id: any }>(
+    this: T,
+    data: Prisma.${modelName}UncheckedUpdateInput
+  ) {
     const res = await prismaClient.${lowercaseModelName}.update({
-    where: { id: this.id },
-        data
+      where: { id: this.id },
+      data
     })
     Object.assign(this, res)
 
     return this
-}
+  }
 
-async delete() {
-    await prismaClient.${lowercaseModelName}.delete({ where: { id: this.id } })
-}
+  async delete<T extends ${modelName}PrismaBase & { id: any }>(this: T) {
+    return prismaClient.${lowercaseModelName}.delete({ where: { id: this.id } })
+  }
 
-async fetchGraph(relations: Record<keyof Prisma.${modelName}Include, boolean>) {
-    const withFetched = await prismaClient.${lowercaseModelName}.findUnique({
-        where: { id: this.id },
-        include: relations
-    })
+async fetchGraph<T extends ${modelName}PrismaBase & { id: any }>(
+  this: T,
+  relations: Record<keyof Prisma.${modelName}Include, boolean>
+) {
+  const withFetched = await prismaClient.${lowercaseModelName}.findUnique({
+    where: { id: this.id },
+    include: relations
+  })
+  const mappedToInstances = ${modelName}PrismaBase.mapQueryResultToInstances.apply(
+    // @ts-expect-error
+    this.constructor,
+    [withFetched, relations]
+  )
 
-    const mappedToInstances = mapQueryResultToInstances.apply(this, [
-        // @ts-expect-error
-        withFetched,
-        relations
-    ])
-
-    for (const relation of Object.keys(relations)) {
-        // @ts-expect-error
-        this[relation] = mappedToInstances[relation]
-    }
-    return mappedToInstances
+  for (const relation of Object.keys(relations)) {
+    // @ts-expect-error
+    this[relation] = mappedToInstances[relation]
+  }
+  return mappedToInstances
 }`
 }
