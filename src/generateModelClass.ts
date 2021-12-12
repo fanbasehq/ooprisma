@@ -20,7 +20,7 @@ import { restoreDecoratorObjects } from './utils/restoreDecoratorObjects'
 import { format } from './utils/format'
 import { installPackage } from './utils/installPackage'
 import {
-  makeMapQueryResultToInstances,
+  makeUtilTypes,
   makePrismaBase
 } from './templates/ooprismaClassTemplates'
 
@@ -285,7 +285,12 @@ export function generateModelClass(
         `@prisma/client`
       )
     )
-    imports.push(IMPORT_TEMPLATE(`{ plainToInstance }`, `class-transformer`))
+    imports.push(
+      IMPORT_TEMPLATE(
+        `{ plainToInstance, ClassConstructor }`,
+        `class-transformer`
+      )
+    )
 
     const prismaClientPath = path
       .relative(writeLocation, options.generator.config.prismaClientPath)
@@ -355,7 +360,7 @@ export function generateModelClass(
       `${modelName}Scalars`,
       scalarFields.join('\n'),
       '',
-      ` extends ${modelName}PrismaBase`
+      ` extends ${model.name}PrismaBase`
     )
 
     const objectsClass = MODEL_TEMPLATE(
@@ -368,7 +373,7 @@ export function generateModelClass(
     const generatedModel = INDEX_TEMPLATE(
       [prismaBaseClass, scalarsClass, objectsClass].join('\n\n'),
       mergedImports.join('\n') + '',
-      makeMapQueryResultToInstances(modelName, model.name)
+      makeUtilTypes(model.name.toLowerCase())
     )
 
     return {

@@ -1,38 +1,34 @@
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
+// this file is used for prototyping
+import { Field, ID, ObjectType, Int } from 'type-graphql'
+import { UserGQL } from './generated/User'
+import { Prisma, PrismaClient, Post, prisma } from '@prisma/client'
+import { ClassConstructor, plainToInstance } from 'class-transformer'
+import { prismaClient } from '../prisma/prismaClient'
 
-export const makeUtilTypes = (rawPrismaModelName: string) => {
-  const capitalized = capitalize(rawPrismaModelName)
-
-  return `type Constructor<T> = {
+type Constructor<T> = {
   new (): T
-  relations: Record<keyof Prisma.${capitalized}Include, ClassConstructor<any>>
-  baseRelations: Record<keyof Prisma.${capitalized}Include, ClassConstructor<any>>
+  relations: Record<keyof Prisma.PostInclude, ClassConstructor<any>>
+  baseRelations: Record<keyof Prisma.PostInclude, ClassConstructor<any>>
 }
 
-interface I${capitalized}WithPrismaClient {
-  prismaModel: typeof prismaClient.${rawPrismaModelName}
-  mapQueryResultToInstances: typeof ${capitalized}PrismaBase.mapQueryResultToInstances
-}`
+interface IPostWithPrismaClient {
+  prismaModel: typeof prismaClient.post
+  mapQueryResultToInstances: typeof PostPrismaBase.mapQueryResultToInstances
 }
 
-export const makePrismaBase = (
-  modelName: string,
-  prismaModelName: string,
-  relationsMap = '{}'
-) => {
-  return `class ${prismaModelName}PrismaBase {
-  static prismaModel = prismaClient.${prismaModelName.toLowerCase()}
+class PostPrismaBase {
+  static prismaModel = prismaClient.post
 
-  static baseRelations = ${relationsMap}
+  static baseRelations = {
+    author: UserGQL as ClassConstructor<any>
+  }
 
   static mapQueryResultToInstances<
-    IT extends Prisma.${prismaModelName}Include | null,
-    CT extends ${prismaModelName}PrismaBase
+    IT extends Prisma.PostInclude | null,
+    CT extends PostPrismaBase
   >(
     this: Constructor<CT>,
-    raw: ${prismaModelName} & Partial<typeof this['baseRelations']>,
+    raw: Post & Partial<typeof this['baseRelations']>,
     include?: IT
   ): CT {
     if (!include) {
@@ -64,8 +60,8 @@ export const makePrismaBase = (
     return plainToInstance(this, raw)
   }
 
-  static async findFirst<T extends ${prismaModelName}PrismaBase>(
-    this: Constructor<T> & I${prismaModelName}WithPrismaClient,
+  static async findFirst<T extends PostPrismaBase>(
+    this: Constructor<T> & IPostWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.findFirst>
   ): Promise<T | null> {
     const res = await this.prismaModel.findFirst(...args)
@@ -75,8 +71,8 @@ export const makePrismaBase = (
     return this.mapQueryResultToInstances(res, args[0]?.include)
   }
 
-  static async create<T extends ${prismaModelName}PrismaBase>(
-    this: Constructor<T> & I${prismaModelName}WithPrismaClient,
+  static async create<T extends PostPrismaBase>(
+    this: Constructor<T> & IPostWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.create>
   ): Promise<T> {
     const res = await this.prismaModel.create(...args)
@@ -94,8 +90,8 @@ export const makePrismaBase = (
     return this.prismaModel.count(...args)
   }
 
-  static async findMany<T extends ${prismaModelName}PrismaBase>(
-    this: Constructor<T> & I${prismaModelName}WithPrismaClient,
+  static async findMany<T extends PostPrismaBase>(
+    this: Constructor<T> & IPostWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.findMany>
   ) {
     const res = await this.prismaModel.findMany(...args)
@@ -103,8 +99,8 @@ export const makePrismaBase = (
       this.mapQueryResultToInstances(res, args[0]?.include)
     )
   }
-  static async findUnique<T extends ${prismaModelName}PrismaBase>(
-    this: Constructor<T> & I${prismaModelName}WithPrismaClient,
+  static async findUnique<T extends PostPrismaBase>(
+    this: Constructor<T> & IPostWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.findUnique>
   ) {
     const res = await this.prismaModel.findUnique(...args)
@@ -125,8 +121,8 @@ export const makePrismaBase = (
     return this.prismaModel.groupBy(...args)
   }
 
-  static async update<T extends ${prismaModelName}PrismaBase>(
-    this: Constructor<T> & I${prismaModelName}WithPrismaClient,
+  static async update<T extends PostPrismaBase>(
+    this: Constructor<T> & IPostWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.update>
   ) {
     const res = await this.prismaModel.update(...args)
@@ -138,51 +134,91 @@ export const makePrismaBase = (
     return this.prismaModel.updateMany(...args)
   }
 
-  static async upsert<T extends ${prismaModelName}PrismaBase>(
-    this: Constructor<T> & I${prismaModelName}WithPrismaClient,
+  static async upsert<T extends PostPrismaBase>(
+    this: Constructor<T> & IPostWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.upsert>
   ) {
     const res = await this.prismaModel.upsert(...args)
 
     return this.mapQueryResultToInstances(res, args[0]?.include)
   }
-
-  ${makeInstanceMethods(prismaModelName)}
-}`
 }
 
-export const makeInstanceMethods = (modelName: string) => {
-  const lowercaseModelName = modelName.toLowerCase()
-  return `async $patchAndFetch(data: Prisma.PostUncheckedUpdateInput) {
-    const res = await prismaClient.${lowercaseModelName}.update({
-    where: { id: this.id },
-        data
-    })
-    Object.assign(this, res)
+export class PostGQLScalars extends PostPrismaBase {
+  @Field(() => ID)
+  id: number
 
-    return this
+  @Field()
+  createdAt: Date
+
+  @Field()
+  updatedAt: Date
+
+  @Field()
+  published: boolean
+
+  @Field()
+  title: string
+
+  @Field(() => Int, { nullable: true })
+  authorId?: number
 }
 
-async delete() {
-    await prismaClient.${lowercaseModelName}.delete({ where: { id: this.id } })
+export class PostGQL extends PostGQLScalars {
+  @Field(() => UserGQL, { nullable: true })
+  author?: UserGQL
+
+  // skip overwrite 👇
 }
 
-async fetchGraph(relations: Record<keyof Prisma.${modelName}Include, boolean>) {
-    const withFetched = await prismaClient.${lowercaseModelName}.findUnique({
-        where: { id: this.id },
-        include: relations
-    })
+class CustomUser extends UserGQL {
+  methodOnCustomUser() {
+    console.log('yes!!!!')
+  }
+}
 
-    const mappedToInstances = mapQueryResultToInstances.apply(this, [
-        // @ts-expect-error
-        withFetched,
-        relations
-    ])
+class CustomPost extends PostGQL {
+  author?: CustomUser
+  static relations = {
+    author: CustomUser
+  }
+}
 
-    for (const relation of Object.keys(relations)) {
-        // @ts-expect-error
-        this[relation] = mappedToInstances[relation]
+;(async () => {
+  await prismaClient.post.deleteMany()
+  await prismaClient.user.deleteMany()
+  const post1 = await CustomPost.create({
+    data: {
+      title: 'Hello World',
+      published: true,
+      author: {
+        create: {
+          email: 'test@sample.com'
+        }
+      }
+    },
+    include: {
+      author: true
     }
-    return mappedToInstances
-}`
-}
+  })
+  // const gpr = await PostGQL.groupBy({
+  //   _sum: {
+  //     id: true
+  //   },
+  //   by: ['title']
+  // })
+
+  // const post = await PostGQLScalars.findFirst({ include: { author: true } });
+  // post1.myMethod()
+  console.log(post1)
+  post1.author?.methodOnCustomUser()
+  // post1.author.login()
+  // console.log(post);
+})()
+
+// const gpr2 = prismaClient.post.groupBy({
+//   _sum: {
+//     id: true
+//   },
+//   by: ['title']
+// })

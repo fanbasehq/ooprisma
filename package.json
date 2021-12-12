@@ -36,6 +36,7 @@
   },
   "scripts": {
     "tsc": "tsc",
+    "tsw": "tsc --watch",
     "test": "jest",
     "w": "jest --watch",
     "prepare": "tsc"
