@@ -1,9 +1,8 @@
-// this file is used for prototyping
 import { Field, ID, ObjectType, Int } from 'type-graphql'
-import { UserGQL } from './generated/User'
-import { Prisma, PrismaClient, Post, prisma } from '@prisma/client'
-import { ClassConstructor, plainToInstance } from 'class-transformer'
-import { prismaClient } from '../prisma/prismaClient'
+import { UserGQL } from './User'
+import { Prisma, PrismaClient, Post } from '@prisma/client'
+import { plainToInstance, ClassConstructor } from 'class-transformer'
+import { prismaClient } from './../../prisma/prismaClient'
 
 type Constructor<T> = {
   new (): T
@@ -15,13 +14,10 @@ interface IPostWithPrismaClient {
   prismaModel: typeof prismaClient.post
   mapQueryResultToInstances: typeof PostPrismaBase.mapQueryResultToInstances
 }
-
 class PostPrismaBase {
   static prismaModel = prismaClient.post
 
-  static baseRelations = {
-    author: UserGQL as ClassConstructor<any>
-  }
+  static baseRelations = { author: UserGQL }
 
   static mapQueryResultToInstances<
     IT extends Prisma.PostInclude | null,
@@ -38,18 +34,16 @@ class PostPrismaBase {
     for (const keyRaw of Object.keys(raw)) {
       const key = keyRaw as keyof Prisma.PostInclude
       if (include[key] && raw[key]) {
-        console.log('~ this', this.relations, key)
-
         if (typeof include[key] === 'object') {
           // @ts-expect-error
           raw[key] = mapQueryResultToInstances(raw[key], include[key])
         } else {
           if (this?.relations && this?.relations[key]) {
             raw[key] = plainToInstance(this?.relations[key], raw[key])
-          } else {
+          } else if (this?.baseRelations && this?.baseRelations[key]) {
             raw[key] = plainToInstance(
-              PostPrismaBase.baseRelations[key],
-
+              // @ts-expect-error
+              PostGQLPrismaBase.baseRelations[key],
               raw[key]
             )
           }
@@ -182,6 +176,7 @@ class PostPrismaBase {
   }
 }
 
+@ObjectType()
 export class PostGQLScalars extends PostPrismaBase {
   @Field(() => ID)
   id: number
@@ -202,61 +197,10 @@ export class PostGQLScalars extends PostPrismaBase {
   authorId?: number
 }
 
+@ObjectType()
 export class PostGQL extends PostGQLScalars {
   @Field(() => UserGQL, { nullable: true })
   author?: UserGQL
 
   // skip overwrite 👇
 }
-
-class CustomUser extends UserGQL {
-  methodOnCustomUser() {
-    console.log('yes!!!!')
-  }
-}
-
-class CustomPost extends PostGQL {
-  author?: CustomUser
-  static relations = {
-    author: CustomUser
-  }
-}
-
-;(async () => {
-  await prismaClient.post.deleteMany()
-  await prismaClient.user.deleteMany()
-  const post1 = await CustomPost.create({
-    data: {
-      title: 'Hello World',
-      published: true,
-      author: {
-        create: {
-          email: 'test@sample.com'
-        }
-      }
-    },
-    include: {
-      author: true
-    }
-  })
-  // const gpr = await PostGQL.groupBy({
-  //   _sum: {
-  //     id: true
-  //   },
-  //   by: ['title']
-  // })
-
-  // const post = await PostGQLScalars.findFirst({ include: { author: true } });
-  // post1.myMethod()
-  console.log(post1)
-  post1.author?.methodOnCustomUser()
-  // post1.author.login()
-  // console.log(post);
-})()
-
-// const gpr2 = prismaClient.post.groupBy({
-//   _sum: {
-//     id: true
-//   },
-//   by: ['title']
-// })

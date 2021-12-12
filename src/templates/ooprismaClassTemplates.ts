@@ -7,7 +7,7 @@ export const makeUtilTypes = (rawPrismaModelName: string) => {
 
   return `type Constructor<T> = {
   new (): T
-  relations: Record<keyof Prisma.${capitalized}Include, ClassConstructor<any>>
+  relations?: Record<keyof Prisma.${capitalized}Include, ClassConstructor<any>>
   baseRelations: Record<keyof Prisma.${capitalized}Include, ClassConstructor<any>>
 }
 

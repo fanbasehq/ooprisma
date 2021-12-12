@@ -1,4 +1,4 @@
-import { PostGQL } from './PostDevFile'
+import { PostGQL } from './generated/Post'
 
 export class PostCustom extends PostGQL {
   myMethod() {
