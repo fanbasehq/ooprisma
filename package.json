@@ -7,8 +7,10 @@
   "license": "MIT",
   "devDependencies": {
     "@prisma/client": "^3.6.0",
+    "@types/faker": "^5.5.9",
     "@types/jest": "^27.0.3",
     "class-transformer": "^0.5.1",
+    "faker": "^5.5.3",
     "husky": "^7.0.4",
     "jest": "^27.4.3",
     "jest-fs-snapshot": "^0.2.1",
@@ -38,6 +40,7 @@
     "tsc": "tsc",
     "tsw": "tsc --watch",
     "test": "jest",
+    "w:generator": "jest --watch --grep generator",
     "w": "jest --watch",
     "prepare": "tsc"
   }

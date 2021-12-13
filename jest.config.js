@@ -2,7 +2,8 @@
 module.exports = {
   preset: 'ts-jest',
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
-  setupFilesAfterEnv: ['./jest.setup.ts'],
+  setupFilesAfterEnv: ['./test/jest.setup.ts'],
+  globalSetup: './test/jest.globalSetup.ts',
   testEnvironment: 'node',
   globals: {
     'ts-jest': {
