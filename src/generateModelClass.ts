@@ -355,11 +355,7 @@ export function generateModelClass(
       })
       .join(',')}}\n`
 
-    const prismaBaseClass = makePrismaBase(
-      modelName,
-      model.name,
-      baseRelationsMap
-    )
+    const prismaBaseClass = makePrismaBase(modelName, model, baseRelationsMap)
 
     const scalarsClass = MODEL_TEMPLATE(
       `${modelName}Scalars`,

@@ -4,7 +4,7 @@ ES6 class generator inspired heavily by objection.js
 
 ## TODO
 
-- handle models id field properly for models without id
+- handle instance methods properly for models without a primary key
 
 ## TSconfig
 

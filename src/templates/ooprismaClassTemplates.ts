@@ -1,3 +1,5 @@
+import { DMMF } from '@prisma/generator-helper'
+
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
@@ -19,9 +21,10 @@ interface I${capitalized}WithPrismaClient {
 
 export const makePrismaBase = (
   modelName: string,
-  prismaModelName: string,
+  model: DMMF.Model,
   relationsMap = '{}'
 ) => {
+  const prismaModelName = model.name
   return `class ${prismaModelName}PrismaBase {
   static prismaModel = prismaClient.${prismaModelName.toLowerCase()}
 
@@ -146,18 +149,21 @@ export const makePrismaBase = (
     return this.mapQueryResultToInstances(res, args[0]?.include)
   }
 
-  ${makeInstanceMethods(prismaModelName)}
+  ${makeInstanceMethods(prismaModelName, model.primaryKey?.name)}
 }`
 }
 
-export const makeInstanceMethods = (modelName: string) => {
+export const makeInstanceMethods = (
+  modelName: string,
+  idField?: string | null
+) => {
   const lowercaseModelName = modelName.toLowerCase()
-  return `  async $patchAndFetch<T extends ${modelName}PrismaBase & { id: any }>(
+  return `  async $patchAndFetch<T extends ${modelName}PrismaBase & { ${idField}: any }>(
     this: T,
     data: Prisma.${modelName}UncheckedUpdateInput
   ) {
     const res = await prismaClient.${lowercaseModelName}.update({
-      where: { id: this.id },
+      where: { ${idField}: this.${idField} },
       data
     })
     Object.assign(this, res)
@@ -165,16 +171,16 @@ export const makeInstanceMethods = (modelName: string) => {
     return this
   }
 
-  async delete<T extends ${modelName}PrismaBase & { id: any }>(this: T) {
-    return prismaClient.${lowercaseModelName}.delete({ where: { id: this.id } })
+  async delete<T extends ${modelName}PrismaBase & { ${idField}: any }>(this: T) {
+    return prismaClient.${lowercaseModelName}.delete({ where: { ${idField}: this.${idField} } })
   }
 
-async fetchGraph<T extends ${modelName}PrismaBase & { id: any }>(
+async fetchGraph<T extends ${modelName}PrismaBase & { ${idField}: any }>(
   this: T,
   relations: Record<keyof Prisma.${modelName}Include, boolean>
 ) {
   const withFetched = await prismaClient.${lowercaseModelName}.findUnique({
-    where: { id: this.id },
+    where: { ${idField}: this.${idField} },
     include: relations
   })
   const mappedToInstances = ${modelName}PrismaBase.mapQueryResultToInstances.apply(
