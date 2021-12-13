@@ -1,6 +1,19 @@
 # ooprisma
 
-ES6 class generator inspired heavily by objection.js
+Opinionated prisma generator.
+
+ES6 class generator inspired by objection.js.
+It generates classes for your models, which can be extended with your custom classes.
+
+## Generates
+
+For each of your models, this generates:
+
+- Prisma base class - has static methods to call prisma queries and get results mapped to their respective types back
+- Typegraphql Scalars class
+- Typegraphql class with relations included
+
+For examples, see `fixtures` folder.
 
 ## TODO
 
