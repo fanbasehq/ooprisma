@@ -31,26 +31,21 @@ class PostPrismaBase {
     if (!include) {
       return plainToInstance(this, raw)
     }
-    // @ts-expect-error
-    if (include.include) {
-      // prisma uses nested "include"
-      // @ts-expect-error
-      include = include.include
-    }
 
     for (const keyRaw of Object.keys(raw)) {
       const key = keyRaw as keyof Prisma.PostInclude
 
-      if (include![key] && raw[key]) {
+      const includeForRelation = include![key]
+      if (includeForRelation && raw[key]) {
         if (
-          typeof include![key] === 'object' &&
+          typeof includeForRelation === 'object' &&
           this?.relations &&
           this.relations[key]
         ) {
           // @ts-expect-error
           raw[key] = this.relations[key].mapQueryResultToInstances(
             raw[key],
-            include![key]
+            includeForRelation.include
           )
         } else {
           if (this?.relations && this?.relations[key]) {
@@ -152,12 +147,12 @@ class PostPrismaBase {
     return this.mapQueryResultToInstances(res, args[0]?.include)
   }
 
-  async $patchAndFetch<T extends PostPrismaBase & { undefined: any }>(
+  async $patchAndFetch<T extends PostPrismaBase & { id: any }>(
     this: T,
     data: Prisma.PostUncheckedUpdateInput
   ) {
     const res = await prismaClient.post.update({
-      where: { undefined: this.undefined },
+      where: { id: this.id },
       data
     })
     Object.assign(this, res)
@@ -165,16 +160,16 @@ class PostPrismaBase {
     return this
   }
 
-  async delete<T extends PostPrismaBase & { undefined: any }>(this: T) {
-    return prismaClient.post.delete({ where: { undefined: this.undefined } })
+  async delete<T extends PostPrismaBase & { id: any }>(this: T) {
+    return prismaClient.post.delete({ where: { id: this.id } })
   }
 
-  async fetchGraph<T extends PostPrismaBase & { undefined: any }>(
+  async fetchGraph<T extends PostPrismaBase & { id: any }>(
     this: T,
     relations: Record<keyof Prisma.PostInclude, boolean>
   ) {
     const withFetched = await prismaClient.post.findUnique({
-      where: { undefined: this.undefined },
+      where: { id: this.id },
       include: relations
     })
     const mappedToInstances = PostPrismaBase.mapQueryResultToInstances.apply(

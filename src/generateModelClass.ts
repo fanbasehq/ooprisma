@@ -214,7 +214,6 @@ export function generateModelClass(
       else return true
     })
     const objectsFields = nonScalarFields.map((e) => e.field)
-    console.log('~ objectsFields', objectsFields)
 
     const dependsOn = modulesThatIsUsed(
       options.dmmf.datamodel.models,
@@ -355,7 +354,8 @@ export function generateModelClass(
       })
       .join(',')}}\n`
 
-    const prismaBaseClass = makePrismaBase(modelName, model, baseRelationsMap)
+    const prismaBaseClass = makePrismaBase(model, baseRelationsMap)
+    console.log('~ model', model)
 
     const scalarsClass = MODEL_TEMPLATE(
       `${modelName}Scalars`,

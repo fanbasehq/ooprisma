@@ -19,11 +19,8 @@ interface I${capitalized}WithPrismaClient {
 }`
 }
 
-export const makePrismaBase = (
-  modelName: string,
-  model: DMMF.Model,
-  relationsMap = '{}'
-) => {
+export const makePrismaBase = (model: DMMF.Model, relationsMap = '{}') => {
+  const primaryField = model.fields.find(({ isId }) => isId)
   const prismaModelName = model.name
   return `class ${prismaModelName}PrismaBase {
   static prismaModel = prismaClient.${prismaModelName.toLowerCase()}
@@ -41,22 +38,21 @@ export const makePrismaBase = (
     if (!include) {
       return plainToInstance(this, raw)
     }
-    // @ts-expect-error
-    if (include.include) {
-      // prisma uses nested "include"
-      // @ts-expect-error
-      include = include.include
-    }
 
     for (const keyRaw of Object.keys(raw)) {
-      const key = keyRaw as keyof Prisma.${prismaModelName}Include
+      const key = keyRaw as keyof Prisma.PostInclude
 
-      if (include![key] && raw[key]) {
-        if (typeof include![key] === 'object' && this?.relations && this.relations[key]) {
+      const includeForRelation = include![key]
+      if (includeForRelation && raw[key]) {
+        if (
+          typeof includeForRelation === 'object' &&
+          this?.relations &&
+          this.relations[key]
+        ) {
           // @ts-expect-error
           raw[key] = this.relations[key].mapQueryResultToInstances(
             raw[key],
-            include![key]
+            includeForRelation.include
           )
         } else {
           if (this?.relations && this?.relations[key]) {
@@ -64,7 +60,7 @@ export const makePrismaBase = (
           } else if (this?.baseRelations && this?.baseRelations[key]) {
             raw[key] = plainToInstance(
               // @ts-expect-error
-              ${modelName}PrismaBase.baseRelations[key],
+              PostGQLPrismaBase.baseRelations[key],
               raw[key]
             )
           }
@@ -158,7 +154,7 @@ export const makePrismaBase = (
     return this.mapQueryResultToInstances(res, args[0]?.include)
   }
 
-  ${makeInstanceMethods(prismaModelName, model.primaryKey?.name)}
+  ${makeInstanceMethods(prismaModelName, primaryField?.name)}
 }`
 }
 

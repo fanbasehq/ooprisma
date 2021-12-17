@@ -31,26 +31,21 @@ class ImagePrismaBase {
     if (!include) {
       return plainToInstance(this, raw)
     }
-    // @ts-expect-error
-    if (include.include) {
-      // prisma uses nested "include"
-      // @ts-expect-error
-      include = include.include
-    }
 
     for (const keyRaw of Object.keys(raw)) {
-      const key = keyRaw as keyof Prisma.ImageInclude
+      const key = keyRaw as keyof Prisma.PostInclude
 
-      if (include![key] && raw[key]) {
+      const includeForRelation = include![key]
+      if (includeForRelation && raw[key]) {
         if (
-          typeof include![key] === 'object' &&
+          typeof includeForRelation === 'object' &&
           this?.relations &&
           this.relations[key]
         ) {
           // @ts-expect-error
           raw[key] = this.relations[key].mapQueryResultToInstances(
             raw[key],
-            include![key]
+            includeForRelation.include
           )
         } else {
           if (this?.relations && this?.relations[key]) {
@@ -58,7 +53,7 @@ class ImagePrismaBase {
           } else if (this?.baseRelations && this?.baseRelations[key]) {
             raw[key] = plainToInstance(
               // @ts-expect-error
-              ImageGQLPrismaBase.baseRelations[key],
+              PostGQLPrismaBase.baseRelations[key],
               raw[key]
             )
           }
@@ -152,12 +147,12 @@ class ImagePrismaBase {
     return this.mapQueryResultToInstances(res, args[0]?.include)
   }
 
-  async $patchAndFetch<T extends ImagePrismaBase & { undefined: any }>(
+  async $patchAndFetch<T extends ImagePrismaBase & { id: any }>(
     this: T,
     data: Prisma.ImageUncheckedUpdateInput
   ) {
     const res = await prismaClient.image.update({
-      where: { undefined: this.undefined },
+      where: { id: this.id },
       data
     })
     Object.assign(this, res)
@@ -165,16 +160,16 @@ class ImagePrismaBase {
     return this
   }
 
-  async delete<T extends ImagePrismaBase & { undefined: any }>(this: T) {
-    return prismaClient.image.delete({ where: { undefined: this.undefined } })
+  async delete<T extends ImagePrismaBase & { id: any }>(this: T) {
+    return prismaClient.image.delete({ where: { id: this.id } })
   }
 
-  async fetchGraph<T extends ImagePrismaBase & { undefined: any }>(
+  async fetchGraph<T extends ImagePrismaBase & { id: any }>(
     this: T,
     relations: Record<keyof Prisma.ImageInclude, boolean>
   ) {
     const withFetched = await prismaClient.image.findUnique({
-      where: { undefined: this.undefined },
+      where: { id: this.id },
       include: relations
     })
     const mappedToInstances = ImagePrismaBase.mapQueryResultToInstances.apply(
