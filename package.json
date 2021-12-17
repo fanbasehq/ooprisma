@@ -46,5 +46,12 @@
     "w:generator": "jest --watch --grep generator",
     "w": "jest --watch",
     "prepare": "tsc"
-  }
+  },
+  "keywords": [
+    "prisma",
+    "orm",
+    "oop",
+    "class",
+    "generator"
+  ]
 }
