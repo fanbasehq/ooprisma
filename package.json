@@ -1,12 +1,15 @@
 {
   "name": "ooprisma",
   "version": "0.0.1",
-  "main": "dist/ooprisma.js",
+  "main": "dist/generator.js",
   "repository": "git@github.com:fanbasehq/ooprisma.git",
   "author": "Jiří Špác <capajj@gmail.com>",
   "license": "MIT",
   "engines": {
     "node": ">=12.0"
+  },
+  "bin": {
+    "ooprisma-generator": "dist/bin.js"
   },
   "devDependencies": {
     "@prisma/client": "^3.6.0",
