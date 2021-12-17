@@ -41,14 +41,23 @@ export const makePrismaBase = (
     if (!include) {
       return plainToInstance(this, raw)
     }
+    // @ts-expect-error
+    if (include.include) {
+      // prisma uses nested "include"
+      // @ts-expect-error
+      include = include.include
+    }
 
     for (const keyRaw of Object.keys(raw)) {
       const key = keyRaw as keyof Prisma.${prismaModelName}Include
-      if (include[key] && raw[key]) {
 
-        if (typeof include[key] === 'object') {
+      if (include![key] && raw[key]) {
+        if (typeof include![key] === 'object' && this?.relations && this.relations[key]) {
           // @ts-expect-error
-          raw[key] = mapQueryResultToInstances(raw[key], include[key])
+          raw[key] = this.relations[key].mapQueryResultToInstances(
+            raw[key],
+            include![key]
+          )
         } else {
           if (this?.relations && this?.relations[key]) {
             raw[key] = plainToInstance(this?.relations[key], raw[key])

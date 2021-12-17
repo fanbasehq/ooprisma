@@ -11,7 +11,7 @@ datasource db {
 }
 
 generator PrismaTypeGraphQLTypesGenerator {
-  provider                   = "node ../../dist/generator.js"
+  provider                   = "node ../../dist/src/generator.js"
   modelsOutput               = "./models/generated"
   enumsOutput                = "./models/types"
   useYarn                    = true
@@ -28,6 +28,9 @@ model User {
 
   role  String @default("USER")
   posts Post[]
+
+  profilePictureId Int?
+  profilePicture   Image? @relation(fields: [profilePictureId], references: [id])
 }
 
 model Post {
@@ -38,4 +41,18 @@ model Post {
   title     String
   author    User?    @relation(fields: [authorId], references: [id])
   authorId  Int?
+
+  headerPicId Int?
+  headerPic   Image? @relation(fields: [headerPicId], references: [id])
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  height    Int
+  width     Int
+  url       String
+  User      User[]
+  Post      Post[]
 }

@@ -104,3 +104,4 @@ dist
 .tern-port
 
 fixtures/basic/prisma/basic.db
+fixtures/basic/prisma/basic.db-journal

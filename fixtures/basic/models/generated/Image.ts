@@ -1,31 +1,31 @@
 import { Field, ID, ObjectType, Int } from 'type-graphql'
 import { UserGQL } from './User'
-import { Prisma, PrismaClient, Post } from '@prisma/client'
+import { PostGQL } from './Post'
+import { Prisma, PrismaClient, Image } from '@prisma/client'
 import { plainToInstance, ClassConstructor } from 'class-transformer'
 import { prismaClient } from './../../prisma/prismaClient'
-import { ImageGQL } from './Image'
 
 type Constructor<T> = {
   new (): T
-  relations?: Record<keyof Prisma.PostInclude, ClassConstructor<any>>
-  baseRelations: Record<keyof Prisma.PostInclude, ClassConstructor<any>>
+  relations?: Record<keyof Prisma.ImageInclude, ClassConstructor<any>>
+  baseRelations: Record<keyof Prisma.ImageInclude, ClassConstructor<any>>
 }
 
-interface IPostWithPrismaClient {
-  prismaModel: typeof prismaClient.post
-  mapQueryResultToInstances: typeof PostPrismaBase.mapQueryResultToInstances
+interface IImageWithPrismaClient {
+  prismaModel: typeof prismaClient.image
+  mapQueryResultToInstances: typeof ImagePrismaBase.mapQueryResultToInstances
 }
-class PostPrismaBase {
-  static prismaModel = prismaClient.post
+class ImagePrismaBase {
+  static prismaModel = prismaClient.image
 
-  static baseRelations = { author: UserGQL, headerPic: ImageGQL }
+  static baseRelations = { User: UserGQL, Post: PostGQL }
 
   static mapQueryResultToInstances<
-    IT extends Prisma.PostInclude | null,
-    CT extends PostPrismaBase
+    IT extends Prisma.ImageInclude | null,
+    CT extends ImagePrismaBase
   >(
     this: Constructor<CT>,
-    raw: Post & Partial<typeof this['baseRelations']>,
+    raw: Image & Partial<typeof this['baseRelations']>,
     include?: IT
   ): CT {
     if (!include) {
@@ -39,7 +39,7 @@ class PostPrismaBase {
     }
 
     for (const keyRaw of Object.keys(raw)) {
-      const key = keyRaw as keyof Prisma.PostInclude
+      const key = keyRaw as keyof Prisma.ImageInclude
 
       if (include![key] && raw[key]) {
         if (
@@ -58,7 +58,7 @@ class PostPrismaBase {
           } else if (this?.baseRelations && this?.baseRelations[key]) {
             raw[key] = plainToInstance(
               // @ts-expect-error
-              PostGQLPrismaBase.baseRelations[key],
+              ImageGQLPrismaBase.baseRelations[key],
               raw[key]
             )
           }
@@ -69,8 +69,8 @@ class PostPrismaBase {
     return plainToInstance(this, raw)
   }
 
-  static async findFirst<T extends PostPrismaBase>(
-    this: Constructor<T> & IPostWithPrismaClient,
+  static async findFirst<T extends ImagePrismaBase>(
+    this: Constructor<T> & IImageWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.findFirst>
   ): Promise<T | null> {
     const res = await this.prismaModel.findFirst(...args)
@@ -80,8 +80,8 @@ class PostPrismaBase {
     return this.mapQueryResultToInstances(res, args[0]?.include)
   }
 
-  static async create<T extends PostPrismaBase>(
-    this: Constructor<T> & IPostWithPrismaClient,
+  static async create<T extends ImagePrismaBase>(
+    this: Constructor<T> & IImageWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.create>
   ): Promise<T> {
     const res = await this.prismaModel.create(...args)
@@ -99,8 +99,8 @@ class PostPrismaBase {
     return this.prismaModel.count(...args)
   }
 
-  static async findMany<T extends PostPrismaBase>(
-    this: Constructor<T> & IPostWithPrismaClient,
+  static async findMany<T extends ImagePrismaBase>(
+    this: Constructor<T> & IImageWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.findMany>
   ) {
     const res = await this.prismaModel.findMany(...args)
@@ -108,8 +108,8 @@ class PostPrismaBase {
       this.mapQueryResultToInstances(res, args[0]?.include)
     )
   }
-  static async findUnique<T extends PostPrismaBase>(
-    this: Constructor<T> & IPostWithPrismaClient,
+  static async findUnique<T extends ImagePrismaBase>(
+    this: Constructor<T> & IImageWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.findUnique>
   ) {
     const res = await this.prismaModel.findUnique(...args)
@@ -130,8 +130,8 @@ class PostPrismaBase {
     return this.prismaModel.groupBy(...args)
   }
 
-  static async update<T extends PostPrismaBase>(
-    this: Constructor<T> & IPostWithPrismaClient,
+  static async update<T extends ImagePrismaBase>(
+    this: Constructor<T> & IImageWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.update>
   ) {
     const res = await this.prismaModel.update(...args)
@@ -143,8 +143,8 @@ class PostPrismaBase {
     return this.prismaModel.updateMany(...args)
   }
 
-  static async upsert<T extends PostPrismaBase>(
-    this: Constructor<T> & IPostWithPrismaClient,
+  static async upsert<T extends ImagePrismaBase>(
+    this: Constructor<T> & IImageWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.upsert>
   ) {
     const res = await this.prismaModel.upsert(...args)
@@ -152,11 +152,11 @@ class PostPrismaBase {
     return this.mapQueryResultToInstances(res, args[0]?.include)
   }
 
-  async $patchAndFetch<T extends PostPrismaBase & { undefined: any }>(
+  async $patchAndFetch<T extends ImagePrismaBase & { undefined: any }>(
     this: T,
-    data: Prisma.PostUncheckedUpdateInput
+    data: Prisma.ImageUncheckedUpdateInput
   ) {
-    const res = await prismaClient.post.update({
+    const res = await prismaClient.image.update({
       where: { undefined: this.undefined },
       data
     })
@@ -165,19 +165,19 @@ class PostPrismaBase {
     return this
   }
 
-  async delete<T extends PostPrismaBase & { undefined: any }>(this: T) {
-    return prismaClient.post.delete({ where: { undefined: this.undefined } })
+  async delete<T extends ImagePrismaBase & { undefined: any }>(this: T) {
+    return prismaClient.image.delete({ where: { undefined: this.undefined } })
   }
 
-  async fetchGraph<T extends PostPrismaBase & { undefined: any }>(
+  async fetchGraph<T extends ImagePrismaBase & { undefined: any }>(
     this: T,
-    relations: Record<keyof Prisma.PostInclude, boolean>
+    relations: Record<keyof Prisma.ImageInclude, boolean>
   ) {
-    const withFetched = await prismaClient.post.findUnique({
+    const withFetched = await prismaClient.image.findUnique({
       where: { undefined: this.undefined },
       include: relations
     })
-    const mappedToInstances = PostPrismaBase.mapQueryResultToInstances.apply(
+    const mappedToInstances = ImagePrismaBase.mapQueryResultToInstances.apply(
       // @ts-expect-error
       this.constructor,
       [withFetched, relations]
@@ -192,7 +192,7 @@ class PostPrismaBase {
 }
 
 @ObjectType()
-export class PostGQLScalars extends PostPrismaBase {
+export class ImageGQLScalars extends ImagePrismaBase {
   @Field(() => ID)
   id: number
 
@@ -202,26 +202,23 @@ export class PostGQLScalars extends PostPrismaBase {
   @Field()
   updatedAt: Date
 
-  @Field()
-  published: boolean
+  @Field(() => Int)
+  height: number
+
+  @Field(() => Int)
+  width: number
 
   @Field()
-  title: string
-
-  @Field(() => Int, { nullable: true })
-  authorId?: number
-
-  @Field(() => Int, { nullable: true })
-  headerPicId?: number
+  url: string
 }
 
 @ObjectType()
-export class PostGQL extends PostGQLScalars {
-  @Field(() => UserGQL, { nullable: true })
-  author?: UserGQL
+export class ImageGQL extends ImageGQLScalars {
+  @Field(() => [UserGQL])
+  User: UserGQL[]
 
-  @Field(() => ImageGQL, { nullable: true })
-  headerPic?: ImageGQL
+  @Field(() => [PostGQL])
+  Post: PostGQL[]
 
   // skip overwrite 👇
 }

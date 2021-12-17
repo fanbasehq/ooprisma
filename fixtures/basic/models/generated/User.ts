@@ -3,6 +3,8 @@ import { PostGQL } from './Post'
 import { Prisma, PrismaClient, User } from '@prisma/client'
 import { plainToInstance, ClassConstructor } from 'class-transformer'
 import { prismaClient } from './../../prisma/prismaClient'
+import { Field, ID, ObjectType, Int } from 'type-graphql'
+import { ImageGQL } from './Image'
 
 type Constructor<T> = {
   new (): T
@@ -17,7 +19,7 @@ interface IUserWithPrismaClient {
 class UserPrismaBase {
   static prismaModel = prismaClient.user
 
-  static baseRelations = { posts: PostGQL }
+  static baseRelations = { posts: PostGQL, profilePicture: ImageGQL }
 
   static mapQueryResultToInstances<
     IT extends Prisma.UserInclude | null,
@@ -30,13 +32,27 @@ class UserPrismaBase {
     if (!include) {
       return plainToInstance(this, raw)
     }
+    // @ts-expect-error
+    if (include.include) {
+      // prisma uses nested "include"
+      // @ts-expect-error
+      include = include.include
+    }
 
     for (const keyRaw of Object.keys(raw)) {
       const key = keyRaw as keyof Prisma.UserInclude
-      if (include[key] && raw[key]) {
-        if (typeof include[key] === 'object') {
+
+      if (include![key] && raw[key]) {
+        if (
+          typeof include![key] === 'object' &&
+          this?.relations &&
+          this.relations[key]
+        ) {
           // @ts-expect-error
-          raw[key] = mapQueryResultToInstances(raw[key], include[key])
+          raw[key] = this.relations[key].mapQueryResultToInstances(
+            raw[key],
+            include![key]
+          )
         } else {
           if (this?.relations && this?.relations[key]) {
             raw[key] = plainToInstance(this?.relations[key], raw[key])
@@ -137,12 +153,12 @@ class UserPrismaBase {
     return this.mapQueryResultToInstances(res, args[0]?.include)
   }
 
-  async $patchAndFetch<T extends UserPrismaBase & { id: any }>(
+  async $patchAndFetch<T extends UserPrismaBase & { undefined: any }>(
     this: T,
     data: Prisma.UserUncheckedUpdateInput
   ) {
     const res = await prismaClient.user.update({
-      where: { id: this.id },
+      where: { undefined: this.undefined },
       data
     })
     Object.assign(this, res)
@@ -150,16 +166,16 @@ class UserPrismaBase {
     return this
   }
 
-  async delete<T extends UserPrismaBase & { id: any }>(this: T) {
-    return prismaClient.user.delete({ where: { id: this.id } })
+  async delete<T extends UserPrismaBase & { undefined: any }>(this: T) {
+    return prismaClient.user.delete({ where: { undefined: this.undefined } })
   }
 
-  async fetchGraph<T extends UserPrismaBase & { id: any }>(
+  async fetchGraph<T extends UserPrismaBase & { undefined: any }>(
     this: T,
     relations: Record<keyof Prisma.UserInclude, boolean>
   ) {
     const withFetched = await prismaClient.user.findUnique({
-      where: { id: this.id },
+      where: { undefined: this.undefined },
       include: relations
     })
     const mappedToInstances = UserPrismaBase.mapQueryResultToInstances.apply(
@@ -192,12 +208,18 @@ export class UserGQLScalars extends UserPrismaBase {
 
   @Field()
   role: string
+
+  @Field(() => Int, { nullable: true })
+  profilePictureId?: number
 }
 
 @ObjectType()
 export class UserGQL extends UserGQLScalars {
   @Field(() => [PostGQL])
   posts: PostGQL[]
+
+  @Field(() => ImageGQL, { nullable: true })
+  profilePicture?: ImageGQL
 
   // skip overwrite 👇
 }

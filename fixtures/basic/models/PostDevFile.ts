@@ -19,9 +19,7 @@ interface IPostWithPrismaClient {
 class PostPrismaBase {
   static prismaModel = prismaClient.post
 
-  static baseRelations = {
-    author: UserGQL as ClassConstructor<any>
-  }
+  static baseRelations = { author: UserGQL, headerPic: ImageGQL }
 
   static mapQueryResultToInstances<
     IT extends Prisma.PostInclude | null,
@@ -35,21 +33,29 @@ class PostPrismaBase {
       return plainToInstance(this, raw)
     }
 
+    if (include.include) {
+      // prisma uses nested "include"
+      include = include.include
+    }
+
     for (const keyRaw of Object.keys(raw)) {
       const key = keyRaw as keyof Prisma.PostInclude
+      console.log('~ key', key)
       if (include[key] && raw[key]) {
-        console.log('~ this', this.relations, key)
-
         if (typeof include[key] === 'object') {
           // @ts-expect-error
-          raw[key] = mapQueryResultToInstances(raw[key], include[key])
+          raw[key] = this.mapQueryResultToInstances.call(
+            this?.relations[key],
+            raw[key],
+            include[key]
+          )
         } else {
           if (this?.relations && this?.relations[key]) {
             raw[key] = plainToInstance(this?.relations[key], raw[key])
-          } else {
+          } else if (this?.baseRelations && this?.baseRelations[key]) {
             raw[key] = plainToInstance(
-              PostPrismaBase.baseRelations[key],
-
+              // @ts-expect-error
+              PostGQLPrismaBase.baseRelations[key],
               raw[key]
             )
           }
@@ -59,7 +65,6 @@ class PostPrismaBase {
 
     return plainToInstance(this, raw)
   }
-
   static async findFirst<T extends PostPrismaBase>(
     this: Constructor<T> & IPostWithPrismaClient,
     ...args: Parameters<typeof this.prismaModel.findFirst>
