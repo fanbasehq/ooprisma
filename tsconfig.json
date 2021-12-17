@@ -72,5 +72,10 @@
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   },
 
-  "exclude": ["test/jest.setup.ts", "fixtures/**/*.ts"]
+  "exclude": [
+    "test/jest.setup.ts",
+    "fixtures/**/*.ts",
+    "test/**/*.ts",
+    "node_modules/**/*.ts"
+  ]
 }

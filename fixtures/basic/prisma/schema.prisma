@@ -11,7 +11,7 @@ datasource db {
 }
 
 generator PrismaTypeGraphQLTypesGenerator {
-  provider                   = "node ../../dist/src/generator.js"
+  provider                   = "node ../../dist/generator.js"
   modelsOutput               = "./models/generated"
   enumsOutput                = "./models/types"
   useYarn                    = true
